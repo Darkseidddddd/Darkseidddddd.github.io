@@ -1,0 +1,644 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>应用于Potsdam数据集的实时语义分割模型的研究 | 阿瑜</title><meta name="description" content="应用于Potsdam数据集的实时语义分割模型的研究"><meta name="keywords" content="机器学习,CNN,深度学习,遥感图像"><meta name="author" content="Yu"><meta name="copyright" content="Yu"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><meta http-equiv="x-dns-prefetch-control" content="on"><link rel="canonical" href="http://yoursite.com/2020/01/16/cv1/"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="应用于Potsdam数据集的实时语义分割模型的研究"><meta name="twitter:description" content="应用于Potsdam数据集的实时语义分割模型的研究"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/cover.png"><meta property="og:type" content="article"><meta property="og:title" content="应用于Potsdam数据集的实时语义分割模型的研究"><meta property="og:url" content="http://yoursite.com/2020/01/16/cv1/"><meta property="og:site_name" content="阿瑜"><meta property="og:description" content="应用于Potsdam数据集的实时语义分割模型的研究"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/cover.png"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="prev" title="正则表达式的应用" href="http://yoursite.com/2020/01/16/linux-1/"><link rel="next" title="多进程与多线程" href="http://yoursite.com/2020/01/16/os-1/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight_copy: 'false',
+  highlight_lang: 'true',
+  highlight_shrink: 'false',
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    title: '添加书签',
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天'
+
+  
+}</script></head><body><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#实验一"><span class="toc-number">1.</span> <span class="toc-text"> 实验一</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集"><span class="toc-number">1.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数"><span class="toc-number">1.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果"><span class="toc-number">1.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss"><span class="toc-number">1.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）val-miou"><span class="toc-number">1.3.2.</span> <span class="toc-text">（2）val_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）val-oa"><span class="toc-number">1.3.3.</span> <span class="toc-text">（3）val_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test"><span class="toc-number">1.3.4.</span> <span class="toc-text">（4）test</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验二"><span class="toc-number">2.</span> <span class="toc-text"> 实验二 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-1"><span class="toc-number">2.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-1"><span class="toc-number">2.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-1"><span class="toc-number">2.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-1"><span class="toc-number">2.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou"><span class="toc-number">2.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa"><span class="toc-number">2.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-1"><span class="toc-number">2.3.4.</span> <span class="toc-text">（4）test</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验三"><span class="toc-number">3.</span> <span class="toc-text"> 实验三 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-2"><span class="toc-number">3.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-2"><span class="toc-number">3.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-2"><span class="toc-number">3.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-2"><span class="toc-number">3.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-1"><span class="toc-number">3.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-1"><span class="toc-number">3.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-2"><span class="toc-number">3.3.4.</span> <span class="toc-text">（4）test</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验四"><span class="toc-number">4.</span> <span class="toc-text"> 实验四 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-3"><span class="toc-number">4.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-3"><span class="toc-number">4.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-3"><span class="toc-number">4.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-3"><span class="toc-number">4.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-2"><span class="toc-number">4.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-2"><span class="toc-number">4.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-miou"><span class="toc-number">4.3.4.</span> <span class="toc-text">（4）test_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）test-oa"><span class="toc-number">4.3.5.</span> <span class="toc-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验五"><span class="toc-number">5.</span> <span class="toc-text"> 实验五 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-4"><span class="toc-number">5.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-4"><span class="toc-number">5.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-4"><span class="toc-number">5.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-4"><span class="toc-number">5.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-3"><span class="toc-number">5.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-3"><span class="toc-number">5.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-miou-1"><span class="toc-number">5.3.4.</span> <span class="toc-text">（4）test_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）test-oa-1"><span class="toc-number">5.3.5.</span> <span class="toc-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验六"><span class="toc-number">6.</span> <span class="toc-text"> 实验六 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-5"><span class="toc-number">6.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-5"><span class="toc-number">6.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-5"><span class="toc-number">6.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-5"><span class="toc-number">6.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-4"><span class="toc-number">6.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-4"><span class="toc-number">6.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-miou-2"><span class="toc-number">6.3.4.</span> <span class="toc-text">（4）test_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）test-oa-2"><span class="toc-number">6.3.5.</span> <span class="toc-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验七"><span class="toc-number">7.</span> <span class="toc-text"> 实验七 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-6"><span class="toc-number">7.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-6"><span class="toc-number">7.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-6"><span class="toc-number">7.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-6"><span class="toc-number">7.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-5"><span class="toc-number">7.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-5"><span class="toc-number">7.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-miou-3"><span class="toc-number">7.3.4.</span> <span class="toc-text">（4）test_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）test-oa-3"><span class="toc-number">7.3.5.</span> <span class="toc-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FastFCN"><span class="toc-number">8.</span> <span class="toc-text"> FastFCN </span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验一-1"><span class="toc-number">9.</span> <span class="toc-text"> 实验一 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-7"><span class="toc-number">9.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-7"><span class="toc-number">9.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-7"><span class="toc-number">9.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-7"><span class="toc-number">9.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-6"><span class="toc-number">9.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-6"><span class="toc-number">9.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-miou-4"><span class="toc-number">9.3.4.</span> <span class="toc-text">（4）test_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）test-oa-4"><span class="toc-number">9.3.5.</span> <span class="toc-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实验二-1"><span class="toc-number">10.</span> <span class="toc-text"> 实验二 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集-8"><span class="toc-number">10.1.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-实验参数-8"><span class="toc-number">10.2.</span> <span class="toc-text">二. 实验参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-实验结果-8"><span class="toc-number">10.3.</span> <span class="toc-text">三. 实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#（1）train-loss-8"><span class="toc-number">10.3.1.</span> <span class="toc-text">（1）train_loss</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（2）train-miou-7"><span class="toc-number">10.3.2.</span> <span class="toc-text">（2）train_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（3）train-oa-7"><span class="toc-number">10.3.3.</span> <span class="toc-text">（3）train_oa</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（4）test-miou-5"><span class="toc-number">10.3.4.</span> <span class="toc-text">（4）test_miou</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#（5）test-oa-5"><span class="toc-number">10.3.5.</span> <span class="toc-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#BiSeNet"><span class="toc-number">11.1.</span> <span class="toc-text"> BiSeNet </span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FastFCN-1"><span class="toc-number">11.2.</span> <span class="toc-text"> FastFCN </span></a></li></ol></li></ol></div></div></div><div id="content-outer"><div id="top-container" style="background-image: url(https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/cover.png)"><div id="page-header"><span class="pull-left"> <a class="blog_title" id="site-name" href="/">阿瑜</a></span><div class="open toggle-menu pull-right"><div class="menu-icon-first"></div><div class="menu-icon-second"></div><div class="menu-icon-third"></div></div><div class="menu_mask"></div><span class="pull-right menus"><div class="mobile_author_icon"><img class="lozad avatar_img" src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@2.0/cover/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'"></div><div class="mobile_post_data"><div class="mobile_data_item text-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">18</div></a></div></div><div class="mobile_data_item text-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">30</div></a></div></div><div class="mobile_data_item text-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">6</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-igloo"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-window-restore"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-stream"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-robot"></i><span> About</span></a></div><script>document.body.addEventListener('touchstart', function(){ });</script></div></span><span class="pull-right"></span></div><div id="post-info"><div id="post-title"><div class="posttitle">应用于Potsdam数据集的实时语义分割模型的研究</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 发表于 2020-01-16<span class="post-meta__separator">|</span><i class="fa fa-history" aria-hidden="true"></i> 更新于 2020-02-11</time><span class="post-meta__separator mobile_hidden">|</span><span class="mobile_hidden"><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/机器学习/">机器学习</a><i class="fa fa-angle-right" aria-hidden="true"></i><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/语义分割/">语义分割</a></span></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><ul>
+<li>项目构思来历</li>
+<li><ul>
+<li>遥感图像语义分割是遥感图像应用的核心技术之一，通过像素级的语义分割，能对遥感图像所包含的物体类别及分布有全局的了解，初步实现遥感图像的自动理解，并为后续的目标检测、高层语义提取等任务提供基础。近年来，深度学习在计算机视觉中的图像分类、图像语义分割、目标检测等领域得到了广泛应用并取得了很好的效果。</li>
+</ul>
+</li>
+<li><ul>
+<li>在分割问题中很难直接使用CNN网络。CNN的识别是图像级的识别，在卷积层之后需要使用全连接层得到固定长度的特征向量，而且CNN的池化层会丢弃部分位置信息。我们根据BiSeNet模型结合其它类型的神经网络，进行遥感图像的语义分割，可以实现网络的加速、在不增加太多计算量的同时增大感受野、较好的保留边缘信息。</li>
+</ul>
+</li>
+<li>目的、意义等</li>
+<li><ul>
+<li>将BiSeNet等模型引入遥感图像语义分割，结合其它语义分割框架的有点，进一步提高算法精度，实现基于深度学习的遥感图像语义分割。</li>
+</ul>
+</li>
+<li><ul>
+<li>大多数传统模式识别方法采用手工设计的特征，它主要依靠设计者的先验知识，允许出现的参数较少。深度学习能从训练数据中自动提取多层次的图像特征，从而克服了传统方法需要专业知识才能更好地设计特征的难点。</li>
+</ul>
+</li>
+<li><ul>
+<li>遥感图像的语义分割在土地利用分类、环境监测、道路检测、国土资源管理、精细农业、智慧城市、防灾救灾等应用领域上都有重要意义。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h2 id="实验一"><a href="#实验一" class="headerlink" title=" 实验一"></a><center> 实验一<center></center></center></h2><h3 id="一-数据集"><a href="#一-数据集" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam RGB 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<p>这里把训练集，测试集按6 : 2 : 2分成训练集、验证集和测试集，此时训练集有3288张图片，验证集有1092张图篇，测试集有1092张图片。</p>
+<h3 id="二-实验参数"><a href="#二-实验参数" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet18</p>
+<p>1080 8G × 1</p>
+<p>epochs：1000</p>
+<p>batch_size：2</p>
+<p>初始lr：0.025</p>
+<p>optimizer：sgd</p>
+<p>训练时长：99h</p>
+</blockquote>
+<p>其中学习率按照如下公式进行衰减</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lr = init_lr*(<span class="number">1</span> - iter/max_iter)**power</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>init_lr</code>为初始学习率，<code>iter</code>为迭代次数，<code>max_iter</code>为总的训练迭代次数，<code>power</code>为指数，这里设为0.9。</p>
+<h3 id="三-实验结果"><a href="#三-实验结果" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss"><a href="#（1）train-loss" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/1_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）val-miou"><a href="#（2）val-miou" class="headerlink" title="（2）val_miou"></a>（2）val_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/1_epoch_miou_val.png" class="lozad">
+
+<p>最高到<strong><em>0.8004</em></strong>。</p>
+<h4 id="（3）val-oa"><a href="#（3）val-oa" class="headerlink" title="（3）val_oa"></a>（3）val_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/1_epoch_precision_val.png" class="lozad">
+
+<p>最高到<strong><em>0.8731</em></strong>。</p>
+<h4 id="（4）test"><a href="#（4）test" class="headerlink" title="（4）test"></a>（4）test</h4><blockquote>
+<p>IoU for each class:</p>
+<p>surfaces:0.824,</p>
+<p>Building:0.886,</p>
+<p>LowVegetation:0.735,</p>
+<p>Tree:0.740,</p>
+<p>Car:0.819,</p>
+<p>Clutter:0.424,</p>
+<p>oa for test: 0.877</p>
+<p>mIoU: 0.738</p>
+</blockquote>
+<p>测试集miou为<strong><em>0.738</em></strong>，oa为<strong><em>0.877</em></strong>。</p>
+<h2 id="实验二"><a href="#实验二" class="headerlink" title=" 实验二 "></a><center> 实验二 <center></center></center></h2><h3 id="一-数据集-1"><a href="#一-数据集-1" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam RGB 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<p>这里把训练集，测试集按6 : 2 : 2分成训练集、验证集和测试集，此时训练集有3288张图片，验证集有1092张图篇，测试集有1092张图片。</p>
+<h3 id="二-实验参数-1"><a href="#二-实验参数-1" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet18</p>
+<p>1080 8G × 1</p>
+<p>epochs：1000</p>
+<p>batch_size：2</p>
+<p>初始lr：0.025</p>
+<p>optimizer：Adadelta</p>
+<p>训练时长：99h</p>
+</blockquote>
+<p>其中学习率按照如下公式进行衰减</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lr = init_lr*(<span class="number">1</span> - iter/max_iter)**power</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>init_lr</code>为初始学习率，<code>iter</code>为迭代次数，<code>max_iter</code>为总的训练迭代次数，<code>power</code>为指数，这里设为0.9。</p>
+<h3 id="三-实验结果-1"><a href="#三-实验结果-1" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-1"><a href="#（1）train-loss-1" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/3_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）train-miou"><a href="#（2）train-miou" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/3_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa"><a href="#（3）train-oa" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/3_epoch_OA.png" class="lozad">
+
+<h4 id="（4）test-1"><a href="#（4）test-1" class="headerlink" title="（4）test"></a>（4）test</h4><blockquote>
+<p>IoU for each class:</p>
+<p>surfaces:0.824,</p>
+<p>Building:0.896,</p>
+<p>LowVegetation:0.734,</p>
+<p>Tree:0.758,</p>
+<p>Car:0.825,</p>
+<p>Clutter:0.350,</p>
+<p>oa for test: 0.880</p>
+<p>mIoU: 0.731</p>
+</blockquote>
+<p>测试集miou为<strong><em>0.731</em></strong>，oa为<strong><em>0.88</em></strong>。</p>
+<h2 id="实验三"><a href="#实验三" class="headerlink" title=" 实验三 "></a><center> 实验三 <center></center></center></h2><h3 id="一-数据集-2"><a href="#一-数据集-2" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-2"><a href="#二-实验参数-2" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet18</p>
+<p>1080 8G × 1</p>
+<p>epochs：1000</p>
+<p>batch_size：2</p>
+<p>初始lr：0.025</p>
+<p>optimizer：sgd</p>
+<p>训练时长：100+h</p>
+</blockquote>
+<p>其中学习率按照如下公式进行衰减</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lr = init_lr*(<span class="number">1</span> - iter/max_iter)**power</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>init_lr</code>为初始学习率，<code>iter</code>为迭代次数，<code>max_iter</code>为总的训练迭代次数，<code>power</code>为指数，这里设为0.9。</p>
+<h3 id="三-实验结果-2"><a href="#三-实验结果-2" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><p>实验中途断过几次，这是600到1000个epochs的情况。</p>
+<h4 id="（1）train-loss-2"><a href="#（1）train-loss-2" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/2_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）train-miou-1"><a href="#（2）train-miou-1" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/2_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-1"><a href="#（3）train-oa-1" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/2_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-2"><a href="#（4）test-2" class="headerlink" title="（4）test"></a>（4）test</h4><blockquote>
+<p>IoU for each class:</p>
+<p>surfaces:0.800</p>
+<p>Building:0.882</p>
+<p>LowVegetation:0.694</p>
+<p>Tree:0.718</p>
+<p>Car:0.810</p>
+<p>Clutter:0.357</p>
+<p>oa for test: 0.863</p>
+<p>mIoU for test: 0.711</p>
+</blockquote>
+<p>测试集miou为<strong><em>0.711</em></strong>，oa为<strong><em>0.863</em></strong>。</p>
+<h2 id="实验四"><a href="#实验四" class="headerlink" title=" 实验四 "></a><center> 实验四 <center></center></center></h2><h3 id="一-数据集-3"><a href="#一-数据集-3" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-3"><a href="#二-实验参数-3" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet101</p>
+<p>Titan Xp 12G × 1</p>
+<p>epochs：1000</p>
+<p>batch_size：6</p>
+<p>初始lr：0.025</p>
+<p>optimizer：sgd</p>
+<p>训练时长：296h</p>
+</blockquote>
+<h3 id="三-实验结果-3"><a href="#三-实验结果-3" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-3"><a href="#（1）train-loss-3" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/4_epoch_loss_epoch_train.png" class="lozad">
+
+<p>1000个epochs并没有收敛。</p>
+<h4 id="（2）train-miou-2"><a href="#（2）train-miou-2" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/4_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-2"><a href="#（3）train-oa-2" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/4_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-miou"><a href="#（4）test-miou" class="headerlink" title="（4）test_miou"></a>（4）test_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/4_epoch_miou_test.png" class="lozad">
+
+<p>最高到<strong><em>0.808</em></strong>，epochs为<strong><em>991</em></strong>，此时对应oa为<strong><em>0.8799</em></strong>。</p>
+<h4 id="（5）test-oa"><a href="#（5）test-oa" class="headerlink" title="（5）test_oa"></a>（5）test_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/4_epoch_oa_test.png" class="lozad">
+
+<p>最高到<strong><em>0.88</em></strong>，epochs为<strong><em>966</em></strong>，此时对应的miou为<strong><em>0.8069</em></strong>。</p>
+<p>训练集loss曲线没有收敛，测试集的miou和oa都还有上升的空间。</p>
+<h2 id="实验五"><a href="#实验五" class="headerlink" title=" 实验五 "></a><center> 实验五 <center></center></center></h2><h3 id="一-数据集-4"><a href="#一-数据集-4" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-4"><a href="#二-实验参数-4" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet50 </p>
+<p>1080 8G × 2</p>
+<p>epochs：1000</p>
+<p>batch_size：6</p>
+<p>初始lr：0.025</p>
+<p>optimizer：sgd</p>
+<p>训练时长：321h</p>
+</blockquote>
+<h3 id="三-实验结果-4"><a href="#三-实验结果-4" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-4"><a href="#（1）train-loss-4" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/5_epoch_loss_epoch_train.png" class="lozad">
+
+<p>可以看到1000个epochs还是没有收敛。</p>
+<h4 id="（2）train-miou-3"><a href="#（2）train-miou-3" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/5_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-3"><a href="#（3）train-oa-3" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/5_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-miou-1"><a href="#（4）test-miou-1" class="headerlink" title="（4）test_miou"></a>（4）test_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/5_epoch_miou_test.png" class="lozad">
+
+<p>最高到<strong><em>0.8044</em></strong>，epochs为<strong><em>993</em></strong>，此时对应的oa为<strong><em>0.878</em></strong>。</p>
+<h4 id="（5）test-oa-1"><a href="#（5）test-oa-1" class="headerlink" title="（5）test_oa"></a>（5）test_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/5_epoch_oa_test.png" class="lozad">
+
+<p>最高到<strong><em>0.878</em></strong>，epochs为<strong><em>993</em></strong>，此时miou为<strong><em>0.8044</em></strong>。</p>
+<p>训练集上loss曲线没有收敛，测试集的miou和oa都还有上升的空间。</p>
+<h2 id="实验六"><a href="#实验六" class="headerlink" title=" 实验六 "></a><center> 实验六 <center></center></center></h2><h3 id="一-数据集-5"><a href="#一-数据集-5" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-5"><a href="#二-实验参数-5" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet50 </p>
+<p>1080 8G × 2</p>
+<p>epochs：559</p>
+<p>batch_size：6</p>
+<p>初始lr：0.025</p>
+<p>optimizer：adadelta</p>
+<p>训练时长：162h</p>
+</blockquote>
+<h3 id="三-实验结果-5"><a href="#三-实验结果-5" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-5"><a href="#（1）train-loss-5" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/6_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）train-miou-4"><a href="#（2）train-miou-4" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/6_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-4"><a href="#（3）train-oa-4" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img alt="epoch_oa_train" style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/6_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-miou-2"><a href="#（4）test-miou-2" class="headerlink" title="（4）test_miou"></a>（4）test_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/6_epoch_miou_test.png" class="lozad">
+
+<p>最高到<strong><em>0.8087</em></strong>，epochs为<strong><em>414</em></strong>，此时对应的oa为<strong><em>0.88</em></strong>。</p>
+<h4 id="（5）test-oa-2"><a href="#（5）test-oa-2" class="headerlink" title="（5）test_oa"></a>（5）test_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/6_epoch_oa_test.png" class="lozad">
+
+<p>最高到<strong><em>0.88</em></strong>，epochs为<strong><em>414</em></strong>，此时miou为<strong><em>0.8087</em></strong>。</p>
+<h2 id="实验七"><a href="#实验七" class="headerlink" title=" 实验七 "></a><center> 实验七 <center></center></center></h2><h3 id="一-数据集-6"><a href="#一-数据集-6" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-6"><a href="#二-实验参数-6" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet18 </p>
+<p>1080 8G × 2</p>
+<p>epochs：571</p>
+<p>batch_size：6</p>
+<p>初始lr：0.025</p>
+<p>optimizer：adadelta</p>
+<p>训练时长：130h</p>
+</blockquote>
+<h3 id="三-实验结果-6"><a href="#三-实验结果-6" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-6"><a href="#（1）train-loss-6" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/7_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）train-miou-5"><a href="#（2）train-miou-5" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/7_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-5"><a href="#（3）train-oa-5" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/7_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-miou-3"><a href="#（4）test-miou-3" class="headerlink" title="（4）test_miou"></a>（4）test_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/7_epoch_miou_test.png" class="lozad">
+
+<p>最高到<strong><em>0.7984</em></strong>，epochs为<strong><em>517</em></strong>，此时对应的oa为<strong><em>0.8751</em></strong>。</p>
+<h4 id="（5）test-oa-3"><a href="#（5）test-oa-3" class="headerlink" title="（5）test_oa"></a>（5）test_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/7_epoch_oa_test.png" class="lozad">
+
+<p>最高到<strong><em>0.876</em></strong>，epochs为<strong><em>499</em></strong>，此时miou为<strong><em>0.7976</em></strong>。</p>
+<h2 id="FastFCN"><a href="#FastFCN" class="headerlink" title=" FastFCN "></a><center> FastFCN <center></center></center></h2><hr>
+<h2 id="实验一-1"><a href="#实验一-1" class="headerlink" title=" 实验一 "></a><center> 实验一 <cetner></cetner></center></h2><h3 id="一-数据集-7"><a href="#一-数据集-7" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-7"><a href="#二-实验参数-7" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet50 </p>
+<p>1080 8G × 2</p>
+<p>epochs：1000</p>
+<p>batch_size：6</p>
+<p>初始lr：0.025</p>
+<p>optimizer：sgd</p>
+<p>训练时长：182h</p>
+<p>无jpu模块</p>
+</blockquote>
+<h3 id="三-实验结果-7"><a href="#三-实验结果-7" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-7"><a href="#（1）train-loss-7" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/8_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）train-miou-6"><a href="#（2）train-miou-6" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/8_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-6"><a href="#（3）train-oa-6" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/8_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-miou-4"><a href="#（4）test-miou-4" class="headerlink" title="（4）test_miou"></a>（4）test_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/8_epoch_miou_test.png" class="lozad">
+
+<p>最高到<strong><em>0.6551</em></strong>，epochs为<strong><em>976</em></strong>，此时对应的oa为<strong><em>0.8485</em></strong>。</p>
+<h4 id="（5）test-oa-4"><a href="#（5）test-oa-4" class="headerlink" title="（5）test_oa"></a>（5）test_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/8_epoch_oa_test.png" class="lozad">
+
+<p>最高到<strong><em>0.8495</em></strong>，epochs为<strong><em>966</em></strong>，此时miou为<strong><em>0.6525</em></strong>。</p>
+<p>很明显没有收敛。</p>
+<h2 id="实验二-1"><a href="#实验二-1" class="headerlink" title=" 实验二 "></a><center> 实验二 <cetner></cetner></center></h2><h3 id="一-数据集-8"><a href="#一-数据集-8" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>Potsdam IRRG 三通道</p>
+<p>总共六分类</p>
+<blockquote>
+<p>surfaces  (RGB: 255, 255, 255) </p>
+<p>Building  (RGB: 0, 0, 255) </p>
+<p>Low vegetation  (RGB: 0, 255, 255) </p>
+<p>Tree  (RGB: 0, 255, 0) </p>
+<p>Car  (RGB: 255, 255, 0) </p>
+<p>Clutter / background  (RGB: 255, 0, 0) </p>
+</blockquote>
+<p>训练集总共24张6000 × 6000 × 3的图片，测试集总共14张6000 × 6000 × 3的图片</p>
+<p>把所有训练集和测试集切割为512 × 512 × 3的图片，对于每行每列最后一张除不尽的部分，用上一张图片最后的部分像素填充至512 × 512大小。</p>
+<p>切割后的训练集有3456张图片，测试集有2016张图片，大小为512 × 512 × 3。</p>
+<h3 id="二-实验参数-8"><a href="#二-实验参数-8" class="headerlink" title="二. 实验参数"></a>二. 实验参数</h3><blockquote>
+<p>backbone：resnet50 </p>
+<p>1080 8G × 2</p>
+<p>epochs：1000</p>
+<p>batch_size：6</p>
+<p>初始lr：0.025</p>
+<p>optimizer：sgd</p>
+<p>训练时长：228h</p>
+<p>有jpu模块</p>
+</blockquote>
+<h3 id="三-实验结果-8"><a href="#三-实验结果-8" class="headerlink" title="三. 实验结果"></a>三. 实验结果</h3><h4 id="（1）train-loss-8"><a href="#（1）train-loss-8" class="headerlink" title="（1）train_loss"></a>（1）train_loss</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/9_epoch_loss_epoch_train.png" class="lozad">
+
+<h4 id="（2）train-miou-7"><a href="#（2）train-miou-7" class="headerlink" title="（2）train_miou"></a>（2）train_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/9_epoch_miou_train.png" class="lozad">
+
+<h4 id="（3）train-oa-7"><a href="#（3）train-oa-7" class="headerlink" title="（3）train_oa"></a>（3）train_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/9_epoch_oa_train.png" class="lozad">
+
+<h4 id="（4）test-miou-5"><a href="#（4）test-miou-5" class="headerlink" title="（4）test_miou"></a>（4）test_miou</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/9_epoch_miou_test.png" class="lozad">
+
+<p>最高到<strong><em>0.7124</em></strong>，epochs为<strong><em>979</em></strong>，此时对应的oa为<strong><em>0.8682</em></strong>。</p>
+<h4 id="（5）test-oa-5"><a href="#（5）test-oa-5" class="headerlink" title="（5）test_oa"></a>（5）test_oa</h4><img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/9_epoch_oa_test.png" class="lozad">
+
+<p>最高到<strong><em>0.8688</em></strong>，epochs为<strong><em>996</em></strong>，此时miou为<strong><em>0.7111</em></strong>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="BiSeNet"><a href="#BiSeNet" class="headerlink" title=" BiSeNet "></a><center> BiSeNet <center></center></center></h3><hr>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>batch_size/backbone</th>
+<th>显卡</th>
+<th>数据集</th>
+<th>optimizer</th>
+<th>miou/step</th>
+<th>oa/step</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实验一</td>
+<td>2/resnet18</td>
+<td>1080 × 1</td>
+<td>RGB</td>
+<td>sgd</td>
+<td>0.738/?</td>
+<td>0.877/?</td>
+</tr>
+<tr>
+<td>实验二</td>
+<td>2/resnet18</td>
+<td>1080 × 1</td>
+<td>RGB</td>
+<td>adadelta</td>
+<td>0.731/?</td>
+<td>0.88/?</td>
+</tr>
+<tr>
+<td>实验三</td>
+<td>2/resnet18</td>
+<td>1080 × 1</td>
+<td>IRRG</td>
+<td>sgd</td>
+<td>0.711/?</td>
+<td>0.863/?</td>
+</tr>
+<tr>
+<td>实验四</td>
+<td>6/resnet101</td>
+<td>Titan Xp</td>
+<td>IRRG</td>
+<td>sgd</td>
+<td>0.808/991</td>
+<td>0.88/966</td>
+</tr>
+<tr>
+<td>实验五</td>
+<td>6/resnet50</td>
+<td>1080 × 2</td>
+<td>IRRG</td>
+<td>sgd</td>
+<td>0.8044/993</td>
+<td>0.878/993</td>
+</tr>
+<tr>
+<td>实验六</td>
+<td>6/resnet50</td>
+<td>1080 × 2</td>
+<td>IRRG</td>
+<td>adadelta</td>
+<td>0.8087/414</td>
+<td>0.88/414</td>
+</tr>
+<tr>
+<td>实验七</td>
+<td>6/resnet18</td>
+<td>Titan Xp</td>
+<td>IRRG</td>
+<td>adadelta</td>
+<td>0.7984/517</td>
+<td>0.876/499</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>batch_size/backbone</th>
+<th>显卡</th>
+<th>optimizer</th>
+<th>miou/step</th>
+<th>oa/step</th>
+<th>F-score</th>
+<th>kappa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>6/resnet50</td>
+<td>1080 × 2</td>
+<td>sgd</td>
+<td>0.8044/993</td>
+<td>0.878/993</td>
+<td>0.8856</td>
+<td>0.774</td>
+</tr>
+<tr>
+<td>6/resnet101</td>
+<td>Titan Xp</td>
+<td>sgd</td>
+<td>0.808/991</td>
+<td>0.88/966</td>
+<td>0.89</td>
+<td>0.796</td>
+</tr>
+<tr>
+<td>6/resnet18</td>
+<td>Titan Xp</td>
+<td>adadelta</td>
+<td>0.7984/517</td>
+<td>0.876/499</td>
+<td>0.8756</td>
+<td>0.771</td>
+</tr>
+<tr>
+<td>6/resnet50</td>
+<td>1080 × 2</td>
+<td>adadelta</td>
+<td>0.8087/414</td>
+<td>0.88/414</td>
+<td>0.893</td>
+<td>0.803</td>
+</tr>
+</tbody></table>
+<p>512 × 512 × 3，FPS如下</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>模型大小</th>
+<th>1080 8G × 1</th>
+<th>Titan Xp 12G × 1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>resnet18</td>
+<td>47.6M</td>
+<td>183.3</td>
+<td>196.6</td>
+</tr>
+<tr>
+<td>resnet50</td>
+<td>120.1M</td>
+<td>97.1</td>
+<td>105.2</td>
+</tr>
+<tr>
+<td>resnet101</td>
+<td>192.8M</td>
+<td>56</td>
+<td>61.8</td>
+</tr>
+</tbody></table>
+<h3 id="FastFCN-1"><a href="#FastFCN-1" class="headerlink" title=" FastFCN "></a><center> FastFCN <center></center></center></h3><hr>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>batch_size/backbone</th>
+<th>显卡</th>
+<th>jpu模块</th>
+<th>optimizer</th>
+<th>miou/step</th>
+<th>oa/step</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实验一</td>
+<td>6/resnet50</td>
+<td>1080 × 2</td>
+<td>无</td>
+<td>sgd</td>
+<td>0.6551/976</td>
+<td>0.85/966</td>
+</tr>
+<tr>
+<td>实验二</td>
+<td>6/resnet50</td>
+<td>1080 × 2</td>
+<td>有</td>
+<td>sgd</td>
+<td>0.7124/979</td>
+<td>0.869/996</td>
+</tr>
+</tbody></table>
+<p>512 × 512 × 3，FPS如下</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>模型大小</th>
+<th>jpu模块</th>
+<th>1080 8G × 1</th>
+<th>Titan Xp 12G × 1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>resnet50</td>
+<td>120M</td>
+<td>无</td>
+<td>59.6</td>
+<td>-</td>
+</tr>
+<tr>
+<td>resnet50</td>
+<td>179M</td>
+<td>有</td>
+<td>26.5</td>
+<td>-</td>
+</tr>
+</tbody></table>
+<p>可视化结果：</p>
+<p>实验六的<code>confusion matrix</code></p>
+<img style="zoom: 50%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/confusion_matrix.png" class="lozad">
+
+<img alt="loss" style="zoom: 67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/loss.png" class="lozad">
+
+<img alt="miou" style="zoom: 67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/miou.png" class="lozad">
+
+<img alt="oa" style="zoom: 67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/oa.png" class="lozad">
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Yu</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://yoursite.com/2020/01/16/cv1/">http://yoursite.com/2020/01/16/cv1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://yoursite.com">阿瑜</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/机器学习/">机器学习    </a><a class="post-meta__tags" href="/tags/CNN/">CNN    </a><a class="post-meta__tags" href="/tags/深度学习/">深度学习    </a><a class="post-meta__tags" href="/tags/遥感图像/">遥感图像    </a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-buttom"><i class="fa fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lozad post-qr-code__img" src="/img/wechat.png"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lozad post-qr-code__img" src="/img/alipay.png"><div class="post-qr-code__desc">支付宝</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="prev-post pull-left"><a href="/2020/01/16/linux-1/"><img class="prev_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/Linux/1/cover.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="label">上一篇</div><div class="prev_info"><span>正则表达式的应用</span></div></a></div><div class="next-post pull-right"><a href="/2020/01/16/os-1/"><img class="next_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/OperatingSystem/1/cover.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="label">下一篇</div><div class="next_info"><span>多进程与多线程</span></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fa fa-fw fa-thumbs-up" aria-hidden="true"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/2020/01/16/face-detect/" title="人脸关键点检测"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/cover.jpg"><div class="relatedPosts_title">人脸关键点检测</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/ml-1/" title="MNIST数据集处理"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/1/cover.jpg"><div class="relatedPosts_title">MNIST数据集处理</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/data-science-3/" title="线性回归和逻辑回归"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/DataScience/3/cover.jpg"><div class="relatedPosts_title">线性回归和逻辑回归</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/data-science-4/" title="梯度下降法"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/DataScience/4/cover.jpg"><div class="relatedPosts_title">梯度下降法</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/ml-3/" title="FINDS算法及决策树ID3算法实现"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/3/cover.jpg"><div class="relatedPosts_title">FINDS算法及决策树ID3算法实现</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/ml-4/" title="单隐层神经网络的推导及实现"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/4/cover.jpg"><div class="relatedPosts_title">单隐层神经网络的推导及实现</div></a></div></div><div class="clear_both"></div></div></div></div><footer><div id="footer"><div class="copyright">&copy;2018 - 2020 By Yu</div><div class="framework-info"><span>驱动 </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly"><span>Butterfly</span></a></div><div class="footer_custom_text">Welcome to my <a href="https://darkseidddddd.github.io/">blog</a>!</div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><section class="rightside" id="rightside"><a id="to_comment" href="#post-comment"><i class="scroll_to_comment fa fa-comments"></i></a><i class="fa fa-book" id="readmode" title="阅读模式"> </i><i class="fa fa-plus" id="font_plus" title="放大字体"></i><i class="fa fa-minus" id="font_minus" title="缩小字体"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="简繁转换">繁</a><i class="nightshift fa fa-moon-o" id="nightshift" title="夜间模式"></i></section><div class=" " id="post_bottom"><div id="post_bottom_items"><a id="mobile_to_comment" href="#post-comment"><i class="mobile_scroll_to_comment fa fa-comments"></i></a><i class="fa fa-list" id="mobile_toc"></i><div id="toc_mobile"><div class="toc_mobile_headline">目录</div><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验一"><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text"> 实验一</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集"><span class="toc_mobile_items-number">1.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数"><span class="toc_mobile_items-number">1.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果"><span class="toc_mobile_items-number">1.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss"><span class="toc_mobile_items-number">1.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）val-miou"><span class="toc_mobile_items-number">1.3.2.</span> <span class="toc_mobile_items-text">（2）val_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）val-oa"><span class="toc_mobile_items-number">1.3.3.</span> <span class="toc_mobile_items-text">（3）val_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test"><span class="toc_mobile_items-number">1.3.4.</span> <span class="toc_mobile_items-text">（4）test</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验二"><span class="toc_mobile_items-number">2.</span> <span class="toc_mobile_items-text"> 实验二 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-1"><span class="toc_mobile_items-number">2.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-1"><span class="toc_mobile_items-number">2.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-1"><span class="toc_mobile_items-number">2.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-1"><span class="toc_mobile_items-number">2.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou"><span class="toc_mobile_items-number">2.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa"><span class="toc_mobile_items-number">2.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-1"><span class="toc_mobile_items-number">2.3.4.</span> <span class="toc_mobile_items-text">（4）test</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验三"><span class="toc_mobile_items-number">3.</span> <span class="toc_mobile_items-text"> 实验三 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-2"><span class="toc_mobile_items-number">3.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-2"><span class="toc_mobile_items-number">3.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-2"><span class="toc_mobile_items-number">3.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-2"><span class="toc_mobile_items-number">3.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-1"><span class="toc_mobile_items-number">3.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-1"><span class="toc_mobile_items-number">3.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-2"><span class="toc_mobile_items-number">3.3.4.</span> <span class="toc_mobile_items-text">（4）test</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验四"><span class="toc_mobile_items-number">4.</span> <span class="toc_mobile_items-text"> 实验四 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-3"><span class="toc_mobile_items-number">4.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-3"><span class="toc_mobile_items-number">4.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-3"><span class="toc_mobile_items-number">4.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-3"><span class="toc_mobile_items-number">4.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-2"><span class="toc_mobile_items-number">4.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-2"><span class="toc_mobile_items-number">4.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-miou"><span class="toc_mobile_items-number">4.3.4.</span> <span class="toc_mobile_items-text">（4）test_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（5）test-oa"><span class="toc_mobile_items-number">4.3.5.</span> <span class="toc_mobile_items-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验五"><span class="toc_mobile_items-number">5.</span> <span class="toc_mobile_items-text"> 实验五 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-4"><span class="toc_mobile_items-number">5.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-4"><span class="toc_mobile_items-number">5.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-4"><span class="toc_mobile_items-number">5.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-4"><span class="toc_mobile_items-number">5.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-3"><span class="toc_mobile_items-number">5.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-3"><span class="toc_mobile_items-number">5.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-miou-1"><span class="toc_mobile_items-number">5.3.4.</span> <span class="toc_mobile_items-text">（4）test_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（5）test-oa-1"><span class="toc_mobile_items-number">5.3.5.</span> <span class="toc_mobile_items-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验六"><span class="toc_mobile_items-number">6.</span> <span class="toc_mobile_items-text"> 实验六 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-5"><span class="toc_mobile_items-number">6.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-5"><span class="toc_mobile_items-number">6.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-5"><span class="toc_mobile_items-number">6.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-5"><span class="toc_mobile_items-number">6.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-4"><span class="toc_mobile_items-number">6.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-4"><span class="toc_mobile_items-number">6.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-miou-2"><span class="toc_mobile_items-number">6.3.4.</span> <span class="toc_mobile_items-text">（4）test_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（5）test-oa-2"><span class="toc_mobile_items-number">6.3.5.</span> <span class="toc_mobile_items-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验七"><span class="toc_mobile_items-number">7.</span> <span class="toc_mobile_items-text"> 实验七 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-6"><span class="toc_mobile_items-number">7.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-6"><span class="toc_mobile_items-number">7.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-6"><span class="toc_mobile_items-number">7.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-6"><span class="toc_mobile_items-number">7.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-5"><span class="toc_mobile_items-number">7.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-5"><span class="toc_mobile_items-number">7.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-miou-3"><span class="toc_mobile_items-number">7.3.4.</span> <span class="toc_mobile_items-text">（4）test_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（5）test-oa-3"><span class="toc_mobile_items-number">7.3.5.</span> <span class="toc_mobile_items-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#FastFCN"><span class="toc_mobile_items-number">8.</span> <span class="toc_mobile_items-text"> FastFCN </span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验一-1"><span class="toc_mobile_items-number">9.</span> <span class="toc_mobile_items-text"> 实验一 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-7"><span class="toc_mobile_items-number">9.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-7"><span class="toc_mobile_items-number">9.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-7"><span class="toc_mobile_items-number">9.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-7"><span class="toc_mobile_items-number">9.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-6"><span class="toc_mobile_items-number">9.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-6"><span class="toc_mobile_items-number">9.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-miou-4"><span class="toc_mobile_items-number">9.3.4.</span> <span class="toc_mobile_items-text">（4）test_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（5）test-oa-4"><span class="toc_mobile_items-number">9.3.5.</span> <span class="toc_mobile_items-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#实验二-1"><span class="toc_mobile_items-number">10.</span> <span class="toc_mobile_items-text"> 实验二 </span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集-8"><span class="toc_mobile_items-number">10.1.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-实验参数-8"><span class="toc_mobile_items-number">10.2.</span> <span class="toc_mobile_items-text">二. 实验参数</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-实验结果-8"><span class="toc_mobile_items-number">10.3.</span> <span class="toc_mobile_items-text">三. 实验结果</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（1）train-loss-8"><span class="toc_mobile_items-number">10.3.1.</span> <span class="toc_mobile_items-text">（1）train_loss</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（2）train-miou-7"><span class="toc_mobile_items-number">10.3.2.</span> <span class="toc_mobile_items-text">（2）train_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（3）train-oa-7"><span class="toc_mobile_items-number">10.3.3.</span> <span class="toc_mobile_items-text">（3）train_oa</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（4）test-miou-5"><span class="toc_mobile_items-number">10.3.4.</span> <span class="toc_mobile_items-text">（4）test_miou</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#（5）test-oa-5"><span class="toc_mobile_items-number">10.3.5.</span> <span class="toc_mobile_items-text">（5）test_oa</span></a></li></ol></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#总结"><span class="toc_mobile_items-number">11.</span> <span class="toc_mobile_items-text">总结</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#BiSeNet"><span class="toc_mobile_items-number">11.1.</span> <span class="toc_mobile_items-text"> BiSeNet </span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#FastFCN-1"><span class="toc_mobile_items-number">11.2.</span> <span class="toc_mobile_items-text"> FastFCN </span></a></li></ol></li></ol></div></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+    processEscapes: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  },
+  CommonHTML: {
+    linebreaks: { automatic: true, width: "90% container" }
+  },
+  "HTML-CSS": { 
+    linebreaks: { automatic: true, width: "90% container" }
+  },
+  "SVG": { 
+    linebreaks: { automatic: true, width: "90% container" }
+  }
+});
+</script><script type="text/x-mathjax-config">MathJax.Hub.Queue(function() {
+  var all = MathJax.Hub.getAllJax(), i;
+  for (i=0; i < all.length; i += 1) {
+    all[i].SourceElement().parentNode.className += ' has-jax';
+  }
+});
+</script><script src="https://cdn.jsdelivr.net/npm/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="/js/nightshift.js"></script><script src="/js/tw_cn.js"></script><script>translateInitilization()
+
+</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@1.2.2/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script><script>const observer = lozad(); // lazy loads elements with default selector as '.lozad'
+observer.observe();</script></body></html>

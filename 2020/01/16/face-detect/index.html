@@ -1,0 +1,1276 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="generator" content="Hexo 3.9.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>人脸关键点检测 | 阿瑜</title><meta name="description" content="人脸关键点检测"><meta name="keywords" content="机器学习,CNN,深度学习"><meta name="author" content="Yu"><meta name="copyright" content="Yu"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><meta http-equiv="x-dns-prefetch-control" content="on"><link rel="canonical" href="http://yoursite.com/2020/01/16/face-detect/"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="人脸关键点检测"><meta name="twitter:description" content="人脸关键点检测"><meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/cover.jpg"><meta property="og:type" content="article"><meta property="og:title" content="人脸关键点检测"><meta property="og:url" content="http://yoursite.com/2020/01/16/face-detect/"><meta property="og:site_name" content="阿瑜"><meta property="og:description" content="人脸关键点检测"><meta property="og:image" content="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/cover.jpg"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="next" title="遍历文件目录" href="http://yoursite.com/2020/01/16/linux-2/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://xxx/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight_copy: 'false',
+  highlight_lang: 'true',
+  highlight_shrink: 'false',
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    title: '添加书签',
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天'
+
+  
+}</script></head><body><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#任务描述："><span class="toc-number">1.</span> <span class="toc-text">任务描述：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据集介绍："><span class="toc-number">2.</span> <span class="toc-text">数据集介绍：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Baseline介绍："><span class="toc-number">3.</span> <span class="toc-text">Baseline介绍：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#一-数据集"><span class="toc-number">4.</span> <span class="toc-text">一. 数据集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二-环境"><span class="toc-number">5.</span> <span class="toc-text">二. 环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三-模型"><span class="toc-number">6.</span> <span class="toc-text">三. 模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#四-调试过程"><span class="toc-number">7.</span> <span class="toc-text">四. 调试过程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-卷积层数"><span class="toc-number">7.1.</span> <span class="toc-text">1. 卷积层数</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）4层"><span class="toc-number">7.1.1.</span> <span class="toc-text">（1）4层</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（2）8层"><span class="toc-number">7.1.2.</span> <span class="toc-text">（2）8层</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（3）12层"><span class="toc-number">7.1.3.</span> <span class="toc-text">（3）12层</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-卷积核大小"><span class="toc-number">7.2.</span> <span class="toc-text">2. 卷积核大小</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）2-×-2"><span class="toc-number">7.2.1.</span> <span class="toc-text">（1）2 × 2</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（2）4-×-4"><span class="toc-number">7.2.2.</span> <span class="toc-text">（2）4 × 4</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-是否使用偏置向量"><span class="toc-number">7.3.</span> <span class="toc-text">3. 是否使用偏置向量</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）use-bias-False"><span class="toc-number">7.3.1.</span> <span class="toc-text">（1）use_bias = False</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-权值初始化"><span class="toc-number">7.4.</span> <span class="toc-text">4. 权值初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）Ones"><span class="toc-number">7.4.1.</span> <span class="toc-text">（1）Ones</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（2）RandomNormal"><span class="toc-number">7.4.2.</span> <span class="toc-text">（2）RandomNormal</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（3）glorot-normal"><span class="toc-number">7.4.3.</span> <span class="toc-text">（3）glorot_normal</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-batch-size大小"><span class="toc-number">7.5.</span> <span class="toc-text">5. batch_size大小</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）8"><span class="toc-number">7.5.1.</span> <span class="toc-text">（1）8</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（2）16"><span class="toc-number">7.5.2.</span> <span class="toc-text">（2）16</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（3）64"><span class="toc-number">7.5.3.</span> <span class="toc-text">（3）64</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（4）128"><span class="toc-number">7.5.4.</span> <span class="toc-text">（4）128</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-optimizer选择"><span class="toc-number">7.6.</span> <span class="toc-text">6. optimizer选择</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#（1）Adam"><span class="toc-number">7.6.1.</span> <span class="toc-text">（1）Adam</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（2）sgd"><span class="toc-number">7.6.2.</span> <span class="toc-text">（2）sgd</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#（3）Adadelta"><span class="toc-number">7.6.3.</span> <span class="toc-text">（3）Adadelta</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-resnet结构"><span class="toc-number">7.7.</span> <span class="toc-text">7. resnet结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#五-最终结果"><span class="toc-number">8.</span> <span class="toc-text">五. 最终结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#六-问题及解决"><span class="toc-number">9.</span> <span class="toc-text">六. 问题及解决</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-测试集和训练集分布不同"><span class="toc-number">9.1.</span> <span class="toc-text">1. 测试集和训练集分布不同</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-模型大小"><span class="toc-number">9.2.</span> <span class="toc-text">2. 模型大小</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-数据集划分"><span class="toc-number">9.3.</span> <span class="toc-text">3. 数据集划分</span></a></li></ol></li></ol></div></div></div><div id="content-outer"><div id="top-container" style="background-image: url(https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/cover.jpg)"><div id="page-header"><span class="pull-left"> <a class="blog_title" id="site-name" href="/">阿瑜</a></span><div class="open toggle-menu pull-right"><div class="menu-icon-first"></div><div class="menu-icon-second"></div><div class="menu-icon-third"></div></div><div class="menu_mask"></div><span class="pull-right menus"><div class="mobile_author_icon"><img class="lozad avatar_img" src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@2.0/cover/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'"></div><div class="mobile_post_data"><div class="mobile_data_item text-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">18</div></a></div></div><div class="mobile_data_item text-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">30</div></a></div></div><div class="mobile_data_item text-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">6</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-igloo"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-window-restore"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-stream"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-robot"></i><span> About</span></a></div><script>document.body.addEventListener('touchstart', function(){ });</script></div></span><span class="pull-right"></span></div><div id="post-info"><div id="post-title"><div class="posttitle">人脸关键点检测</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 发表于 2020-01-16<span class="post-meta__separator">|</span><i class="fa fa-history" aria-hidden="true"></i> 更新于 2020-02-10</time><span class="post-meta__separator mobile_hidden">|</span><span class="mobile_hidden"><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/机器学习/">机器学习</a></span></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><h3 id="任务描述："><a href="#任务描述：" class="headerlink" title="任务描述："></a>任务描述：</h3><p>使用（96，96）的灰度图进行15个人脸关键点的预测</p>
+<h3 id="数据集介绍："><a href="#数据集介绍：" class="headerlink" title="数据集介绍："></a>数据集介绍：</h3><p>训练集包含人脸图像以及相应的关键点坐标，测试集只包含人脸图像</p>
+<h3 id="Baseline介绍："><a href="#Baseline介绍：" class="headerlink" title="Baseline介绍："></a>Baseline介绍：</h3><p>包含了读取数据集，输入标签分离，结果导出等代码。</p>
+<ul>
+<li>评测方式：</li>
+<li><ul>
+<li>使用自己编写的模型对训练集数据进行预测，将预测结果使用提供的函数导出到csv文件，文件使用完整的学号命名。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="一-数据集"><a href="#一-数据集" class="headerlink" title="一. 数据集"></a>一. 数据集</h3><p>单通道灰度值图像</p>
+<p>图片大小：96 × 96 × 1</p>
+<p>训练集大小：6001</p>
+<p>测试集大小：1048</p>
+<p>总共十五个关键点：</p>
+<blockquote>
+<p><code>left</code> / <code>right</code> eye center</p>
+<p><code>left</code> / <code>right</code> eye <code>inner</code> / <code>outer</code> corner</p>
+<p><code>left</code> / <code>right</code> eyebrow <code>inner</code> / <code>outer</code>end</p>
+<p>nose tip</p>
+<p>mouth <code>left</code> / <code>right</code> center</p>
+<p>mouth center <code>top</code> / <code>bottom</code> lip</p>
+</blockquote>
+<p>标签由关键点坐标组成的一维向量，其中奇数索引代表横坐标，偶数索引代表纵坐标，15个关键点摊开为30个值。</p>
+<p>随机读取训练集图片展示如下：</p>
+<img style="zoom:67%;" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/1.png" class="lozad">
+
+<h3 id="二-环境"><a href="#二-环境" class="headerlink" title="二. 环境"></a>二. 环境</h3><ol>
+<li>Linux</li>
+<li>GTX 1080 8G × 2</li>
+<li>python 3.7</li>
+<li>Tensorflow-gpu 1.15.0</li>
+<li>keras 2.3.1</li>
+</ol>
+<h3 id="三-模型"><a href="#三-模型" class="headerlink" title="三. 模型"></a>三. 模型</h3><ul>
+<li>卷积神经网络</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Conv2d_BN</span><span class="params">(x, nb_filter, kernel_size, strides=<span class="params">(<span class="number">1</span>, <span class="number">1</span>)</span>, padding=<span class="string">'same'</span>, activation=True, name=None)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    定义convolution + batch normalization层</span></span><br><span class="line"><span class="string">    参数</span></span><br><span class="line"><span class="string">    x: tensor, 输入特征\图片</span></span><br><span class="line"><span class="string">    nb_filter: int, 输出通道数</span></span><br><span class="line"><span class="string">    kernel_size: (n,n), 卷积核大小</span></span><br><span class="line"><span class="string">    strides: int, 卷积步长</span></span><br><span class="line"><span class="string">    padding: string, 'same' or 'valid', 边界是否填充</span></span><br><span class="line"><span class="string">    activation: boolean, 是否使用激活函数</span></span><br><span class="line"><span class="string">    name: string, 名字</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    <span class="keyword">if</span> name <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        bn_name = name + <span class="string">'_bn'</span></span><br><span class="line">        conv_name = name + <span class="string">'_conv'</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        bn_name = <span class="literal">None</span></span><br><span class="line">        conv_name = <span class="literal">None</span></span><br><span class="line">	<span class="comment"># 卷积层</span></span><br><span class="line">    x = Conv2D(nb_filter, kernel_size, padding=padding, use_bias=<span class="literal">True</span>, strides=strides, name=conv_name)(x)</span><br><span class="line">    <span class="keyword">if</span> activation:</span><br><span class="line">    	<span class="comment"># LeakyReLU激活函数</span></span><br><span class="line">    	x = LeakyReLU(alpha=<span class="number">0.1</span>)(x)</span><br><span class="line">    <span class="comment"># bn层</span></span><br><span class="line">    x = BatchNormalization(axis=<span class="number">3</span>, name=bn_name)(x)</span><br><span class="line">    <span class="keyword">return</span> x</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myModel</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    定义模型</span></span><br><span class="line"><span class="string">    width, height: 图片的宽和高</span></span><br><span class="line"><span class="string">    channel: 通道数</span></span><br><span class="line"><span class="string">    classes: 输出节点数</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># layer 1</span></span><br><span class="line">    x = Conv2d_BN(x=inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 2</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 3</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 4</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 5</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 6</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_2'</span>)</span><br><span class="line">    x = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># fullyconnected layer</span></span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br><span class="line"></span><br><span class="line">    model = Model(inputs=inpt, outputs=x)</span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<p>总共12个卷积层，12个bn层，采用小卷积核， (3,3) 大小，加深层数，步长为2，前面5个layer用最大池化捕捉突出特征，最后卷积输出用平均池化获取全局信息，激活函数采用LeakyReLU，防止在卷积计算为负的点直接取消梯度。最后接一个全连接层，采用relu激活函数，用0.1的drop rate连接一个dropout层，防止过拟合。再连一个输出层。</p>
+<p>模型大小为41M。</p>
+<h3 id="四-调试过程"><a href="#四-调试过程" class="headerlink" title="四. 调试过程"></a>四. 调试过程</h3><ul>
+<li><code>train.csv</code> 划分：</li>
+</ul>
+<blockquote>
+<p>训练集 : 验证集 = 9 : 1</p>
+</blockquote>
+<ul>
+<li><p>数据归一化处理，像素值约束在[ 0, 1 ]之间，标签坐标约束在[ -1, 1 ]。</p>
+</li>
+<li><p>评测指标：</p>
+</li>
+</ul>
+<p>$$<br>RMSE=\sqrt {\frac {1}{n}\sum_{i=1}^n(y_i-\hat y_i)^2}\\<br>MSE=\frac {1}{n}\sum_{i=1}^n(y_i-\hat y_i)^2<br>$$</p>
+<ul>
+<li>当验证集的loss连续超过10个epochs没下降时，降级学习率，变为原来的一办。</li>
+<li>当验证集的loss连续超过15个epochs没下降时，停止训练。</li>
+<li>每次保存最优模型</li>
+</ul>
+<h4 id="1-卷积层数"><a href="#1-卷积层数" class="headerlink" title="1. 卷积层数"></a>1. 卷积层数</h4><h5 id="（1）4层"><a href="#（1）4层" class="headerlink" title="（1）4层"></a>（1）4层</h5><p>参数：</p>
+<blockquote>
+<p>epochs: 100</p>
+<p>batch_size: 32</p>
+<p>dropout_rate: 0.1</p>
+<p>use_bias = True</p>
+<p>optimizer: RMSprop(参数为默认值lr=0.001, rho=0.9, epsilon=None, decay=0.0)</p>
+</blockquote>
+<p>模型：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>通道数</th>
+<th>卷积核大小</th>
+<th>步长</th>
+<th>padding</th>
+<th>节点数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer1/layer1_1</td>
+<td>1==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/layer1_2</td>
+<td>32==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/AveragePooling</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>Dense（隐藏层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Dense（输出层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>30</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myModel</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># layer 1</span></span><br><span class="line">    x = Conv2d_BN(x=inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_2'</span>)</span><br><span class="line">    x = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line">    </span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss1.png" class="lozad"></p>
+<p>左边为训练集loss变化曲线，右边为验证集的loss变化曲线。</p>
+<p>可以看到23个epochs就收敛了，不再继续训练。</p>
+<p>最终验证集上的loss为 <strong><em>3.18328321</em></strong>。</p>
+<p>得到的效果并不好，继续加深层数。</p>
+<h5 id="（2）8层"><a href="#（2）8层" class="headerlink" title="（2）8层"></a>（2）8层</h5><p>参数：</p>
+<blockquote>
+<p>epochs: 100</p>
+<p>batch_size: 32</p>
+<p>dropout_rate: 0.1</p>
+<p>use_bias = True</p>
+<p>optimizer: RMSprop(参数为默认值lr=0.001, rho=0.9, epsilon=None, decay=0.0)</p>
+</blockquote>
+<p>模型：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>通道数</th>
+<th>卷积核大小</th>
+<th>步长</th>
+<th>padding</th>
+<th>节点数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer1/layer1_1</td>
+<td>1==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/layer1_2</td>
+<td>32==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_1</td>
+<td>32==&gt;64</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_2</td>
+<td>64==&gt;64</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>64==&gt;64</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_1</td>
+<td>64==&gt;96</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_2</td>
+<td>96=&gt;96</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>AveragePooling</td>
+<td>96==&gt;96</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>Dense（隐藏层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Dense（输出层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>30</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myModel</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># layer 1</span></span><br><span class="line">    x = Conv2d_BN(x=inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 2</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 3</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line">    </span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br><span class="line"></span><br><span class="line">    model = Model(inputs=inpt, outputs=x)</span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss2.png" class="lozad"></p>
+<p>左边为训练集的loss变化曲线，右边为验证集的loss变化曲线。</p>
+<p>因为最值相差太大，所以后面基本看不出变化，也是过早就趋于收敛了。</p>
+<p>最终验证集上的loss为<strong><em>2.05023092</em></strong>。</p>
+<p>继续加深层数。</p>
+<h5 id="（3）12层"><a href="#（3）12层" class="headerlink" title="（3）12层"></a>（3）12层</h5><p>参数：</p>
+<blockquote>
+<p>epochs: 100</p>
+<p>batch_size: 32</p>
+<p>dropout_rate: 0.1</p>
+<p>use_bias = True</p>
+<p>optimizer: RMSprop(参数为默认值lr=0.001, rho=0.9, epsilon=None, decay=0.0)</p>
+</blockquote>
+<p>模型：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>通道数</th>
+<th>卷积核大小</th>
+<th>步长</th>
+<th>padding</th>
+<th>节点数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer1/layer1_1</td>
+<td>1==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/layer1_2</td>
+<td>32==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_1</td>
+<td>32==&gt;64</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_2</td>
+<td>64==&gt;64</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>64==&gt;64</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_1</td>
+<td>64==&gt;96</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_2</td>
+<td>96=&gt;96</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>96==&gt;96</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_1</td>
+<td>96==&gt;128</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_2</td>
+<td>128==&gt;128</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>128==&gt;128</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_1</td>
+<td>128==&gt;256</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_2</td>
+<td>256==&gt;256</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>256==&gt;256</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_1</td>
+<td>256==&gt;512</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_2</td>
+<td>512==&gt;512</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>AveragePooling</td>
+<td>512==&gt;512</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>Dense（隐藏层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Dense（输出层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>30</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myModel</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># layer 1</span></span><br><span class="line">    x = Conv2d_BN(x=inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 2</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 3</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 4</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 5</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 6</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">3</span>,<span class="number">3</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_2'</span>)</span><br><span class="line">    x = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># fullyconnected layer</span></span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss3.png" class="lozad"></p>
+<p>左边为训练集的loss曲线，右边为验证集的loss曲线。</p>
+<p>训练集大概在30个epochs后就收敛了，测试集40个epochs之前抖动比较厉害，之后也趋于稳定。大概在66个epochs就达到停止的条件。</p>
+<p>最终验证集上的loss为<strong><em>1.80527330</em></strong>。</p>
+<p>综上：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>模型大小</th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>4层</td>
+<td>562M</td>
+<td>3.18328321</td>
+</tr>
+<tr>
+<td>8层</td>
+<td>107M</td>
+<td>2.05023092</td>
+</tr>
+<tr>
+<td>12层</td>
+<td>41.6M</td>
+<td>1.80527330</td>
+</tr>
+</tbody></table>
+<p>可以看到12层的模型效果最好。不知道为什么层数减小模型反而异常的大，可能保存了其它的什么数据。</p>
+<h4 id="2-卷积核大小"><a href="#2-卷积核大小" class="headerlink" title="2. 卷积核大小"></a>2. 卷积核大小</h4><h5 id="（1）2-×-2"><a href="#（1）2-×-2" class="headerlink" title="（1）2 × 2"></a>（1）2 × 2</h5><p>参数：</p>
+<blockquote>
+<p>epochs: 100</p>
+<p>batch_size: 32</p>
+<p>dropout_rate: 0.1</p>
+<p>use_bias = True</p>
+<p>optimizer: RMSprop(参数为默认值lr=0.001, rho=0.9, epsilon=None, decay=0.0)</p>
+</blockquote>
+<p>模型：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>通道数</th>
+<th>卷积核大小</th>
+<th>步长</th>
+<th>padding</th>
+<th>节点数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer1/layer1_1</td>
+<td>1==&gt;32</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/layer1_2</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_1</td>
+<td>32==&gt;64</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_2</td>
+<td>64==&gt;64</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>64==&gt;64</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_1</td>
+<td>64==&gt;96</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_2</td>
+<td>96=&gt;96</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>96==&gt;96</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_1</td>
+<td>96==&gt;128</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_2</td>
+<td>128==&gt;128</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>128==&gt;128</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_1</td>
+<td>128==&gt;256</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_2</td>
+<td>256==&gt;256</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>256==&gt;256</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_1</td>
+<td>256==&gt;512</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_2</td>
+<td>512==&gt;512</td>
+<td>(2,2)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>AveragePooling</td>
+<td>512==&gt;512</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>Dense（隐藏层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Dense（输出层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>30</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myModel</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># layer 1</span></span><br><span class="line">    x = Conv2d_BN(x=inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 2</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 3</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 4</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 5</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 6</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">2</span>,<span class="number">2</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_2'</span>)</span><br><span class="line">    x = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># fullyconnected layer</span></span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br><span class="line"></span><br><span class="line">    model = Model(inputs=inpt, outputs=x)</span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<p>最终结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss4.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为验证集loss曲线。</p>
+<p>55个epochs达到停止条件，30个epochs之后趋向于收敛。</p>
+<p>最终验证集上的loss为<strong><em>1.82733778</em></strong>。</p>
+<p>显然效果比 (3,3) 的卷积核差。</p>
+<h5 id="（2）4-×-4"><a href="#（2）4-×-4" class="headerlink" title="（2）4 × 4"></a>（2）4 × 4</h5><p>参数：</p>
+<blockquote>
+<p>epochs: 100</p>
+<p>batch_size: 32</p>
+<p>dropout_rate: 0.1</p>
+<p>use_bias = True</p>
+<p>optimizer: RMSprop(参数为默认值lr=0.001, rho=0.9, epsilon=None, decay=0.0)</p>
+</blockquote>
+<p>模型：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>通道数</th>
+<th>卷积核大小</th>
+<th>步长</th>
+<th>padding</th>
+<th>节点数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer1/layer1_1</td>
+<td>1==&gt;32</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/layer1_2</td>
+<td>32==&gt;32</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_1</td>
+<td>32==&gt;64</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_2</td>
+<td>64==&gt;64</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>64==&gt;64</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_1</td>
+<td>64==&gt;96</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_2</td>
+<td>96=&gt;96</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>96==&gt;96</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_1</td>
+<td>96==&gt;128</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_2</td>
+<td>128==&gt;128</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>128==&gt;128</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_1</td>
+<td>128==&gt;256</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_2</td>
+<td>256==&gt;256</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>256==&gt;256</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_1</td>
+<td>256==&gt;512</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_2</td>
+<td>512==&gt;512</td>
+<td>(4,4)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>AveragePooling</td>
+<td>512==&gt;512</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>Dense（隐藏层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Dense（输出层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>30</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myModel</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># layer 1</span></span><br><span class="line">    x = Conv2d_BN(x=inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer1_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 2</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer2_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 3</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer3_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 4</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer4_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 5</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer5_2'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># layer 6</span></span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_1'</span>)</span><br><span class="line">    x = Conv2d_BN(x=x, nb_filter=<span class="number">512</span>, kernel_size=(<span class="number">4</span>,<span class="number">4</span>), strides=(<span class="number">1</span>,<span class="number">1</span>), padding=<span class="string">'same'</span>, name=<span class="string">'layer6_2'</span>)</span><br><span class="line">    x = AveragePooling2D(pool_size=(<span class="number">2</span>, <span class="number">2</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># fullyconnected layer</span></span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br><span class="line"></span><br><span class="line">    model = Model(inputs=inpt, outputs=x)</span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<p>最终结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss5.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为测试集loss曲线。</p>
+<p>测试集有轻微的抖动，其它正常，在35个epochs后趋于收敛。</p>
+<p>最终验证集上的loss为<strong><em>1.88821242</em></strong>。</p>
+<p>综上：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>模型大小</th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>(2,2)</td>
+<td>20.9M</td>
+<td>1.82733778</td>
+</tr>
+<tr>
+<td>(3,3)</td>
+<td>41.6M</td>
+<td>1.80527330</td>
+</tr>
+<tr>
+<td>(4,4)</td>
+<td>70.6M</td>
+<td>1.88821242</td>
+</tr>
+</tbody></table>
+<p>可以看到 (3,3) 的卷积核大小最合适，大的卷积核会使得参数量加倍。</p>
+<h4 id="3-是否使用偏置向量"><a href="#3-是否使用偏置向量" class="headerlink" title="3. 是否使用偏置向量"></a>3. 是否使用偏置向量</h4><h5 id="（1）use-bias-False"><a href="#（1）use-bias-False" class="headerlink" title="（1）use_bias = False"></a>（1）use_bias = False</h5><p>每一个卷积层不使用偏置向量</p>
+<p>参数：</p>
+<blockquote>
+<p>epochs: 100</p>
+<p>batch_size: 32</p>
+<p>dropout_rate: 0.1</p>
+<p>use_bias = False</p>
+<p>optimizer: RMSprop(参数为默认值lr=0.001, rho=0.9, epsilon=None, decay=0.0)</p>
+</blockquote>
+<p>模型：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>通道数</th>
+<th>卷积核大小</th>
+<th>步长</th>
+<th>padding</th>
+<th>节点数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>layer1/layer1_1</td>
+<td>1==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer1/layer1_2</td>
+<td>32==&gt;32</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>32==&gt;32</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_1</td>
+<td>32==&gt;64</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer2/layer2_2</td>
+<td>64==&gt;64</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>64==&gt;64</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_1</td>
+<td>64==&gt;96</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer3/layer3_2</td>
+<td>96=&gt;96</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>96==&gt;96</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_1</td>
+<td>96==&gt;128</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer4/layer4_2</td>
+<td>128==&gt;128</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>128==&gt;128</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_1</td>
+<td>128==&gt;256</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer5/layer5_2</td>
+<td>256==&gt;256</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>MaxPooling</td>
+<td>256==&gt;256</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_1</td>
+<td>256==&gt;512</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>layer6_2</td>
+<td>512==&gt;512</td>
+<td>(3,3)</td>
+<td>(1,1)</td>
+<td>same</td>
+<td></td>
+</tr>
+<tr>
+<td>AveragePooling</td>
+<td>512==&gt;512</td>
+<td>(2,2)</td>
+<td>(2,2)</td>
+<td>valid</td>
+<td></td>
+</tr>
+<tr>
+<td>Dense（隐藏层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1000</td>
+</tr>
+<tr>
+<td>Dense（输出层）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>30</td>
+</tr>
+</tbody></table>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Conv2d_BN</span><span class="params">(x, nb_filter, kernel_size, strides=<span class="params">(<span class="number">1</span>, <span class="number">1</span>)</span>, padding=<span class="string">'same'</span>, name=None)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> name <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        bn_name = name + <span class="string">'_bn'</span></span><br><span class="line">        conv_name = name + <span class="string">'_conv'</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        bn_name = <span class="literal">None</span></span><br><span class="line">        conv_name = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    x = Conv2D(nb_filter, kernel_size, padding=padding, use_bias=<span class="literal">False</span>, strides=strides, kernel_initializer=<span class="string">'glorot_uniform'</span>, name=conv_name)(x)</span><br><span class="line">    x = LeakyReLU(alpha=<span class="number">0.1</span>)(x)</span><br><span class="line">    x = BatchNormalization(axis=<span class="number">3</span>, name=bn_name)(x)</span><br><span class="line">    <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<p>最终结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss6.png" class="lozad"></p>
+<p>左边为训练集的loss曲线，右边为验证集的loss曲线。</p>
+<p>训练集在40个epochs后就收敛了，而验证集前期波动较大，60个epochs后趋于收敛。</p>
+<p>最终验证集的loss为<strong><em>1.82598148</em></strong>。</p>
+<p>综上：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>模型大小</th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>use_bias=False</td>
+<td>41.6M</td>
+<td>1.82598148</td>
+</tr>
+<tr>
+<td>use_bias=True</td>
+<td>41.6M</td>
+<td>1.80527330</td>
+</tr>
+</tbody></table>
+<p>两个模型基本一样大，但是结果却有差别。可见用偏置向量会好一点。</p>
+<h4 id="4-权值初始化"><a href="#4-权值初始化" class="headerlink" title="4. 权值初始化"></a>4. 权值初始化</h4><p>​    之前默认用的<code>glorot_uniform</code>， Xavier 均匀分布初始化器。它从 [-limit，limit] 中的均匀分布中抽取样本， 其中 <code>limit</code> 是 <code>sqrt(6 / (fan_in + fan_out))</code>， <code>fan_in</code> 是权值张量中的输入单位的数量， <code>fan_out</code> 是权值张量中的输出单位的数量。</p>
+<h5 id="（1）Ones"><a href="#（1）Ones" class="headerlink" title="（1）Ones"></a>（1）Ones</h5><p>​    将所有权值设为1。</p>
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss8.png" class="lozad"></p>
+<p>左边为训练集的loss变化曲线，右边为验证集的loss变化曲线。</p>
+<p>可以看到验证集除了有一个抖动，其它都很平滑。初始的loss非常大，之后逐渐下降。</p>
+<p>最终验证集上的loss为<strong><em>3.37461251</em></strong>。</p>
+<h5 id="（2）RandomNormal"><a href="#（2）RandomNormal" class="headerlink" title="（2）RandomNormal"></a>（2）RandomNormal</h5><p>​    按照正态分布生成随机张量的初始化器。</p>
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss9.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为测试集loss曲线。</p>
+<p>初始的loss很小，很快就下降趋于收敛。</p>
+<p>最终验证集上的loss为<strong><em>1.82365545</em></strong>。</p>
+<h5 id="（3）glorot-normal"><a href="#（3）glorot-normal" class="headerlink" title="（3）glorot_normal"></a>（3）glorot_normal</h5><p>​    Xavier 正态分布初始化器。它从以 0 为中心，标准差为 <code>stddev = sqrt(2 / (fan_in + fan_out))</code> 的截断正态分布中抽取样本， 其中 <code>fan_in</code> 是权值张量中的输入单位的数量， <code>fan_out</code> 是权值张量中的输出单位的数量。</p>
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss7.png" class="lozad"></p>
+<p>左边为训练集的loss曲线，右边为验证集的loss曲线。</p>
+<p>训练集平滑，在30个epochs后趋于收敛，验证集抖动，60个epochs后才趋于收敛。初始的loss不大，下降也很快。</p>
+<p>最终验证集上的loss为<strong><em>1.79378161</em></strong>。</p>
+<p>这里我在本地的结果达到了新高，但是榜上并没有变化。</p>
+<p>综上：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ones</td>
+<td>3.37461251</td>
+</tr>
+<tr>
+<td>RandomNormal</td>
+<td>1.82365545</td>
+</tr>
+<tr>
+<td>glorot_normal</td>
+<td>1.79378161</td>
+</tr>
+<tr>
+<td>glorot_uniform</td>
+<td>1.80527330</td>
+</tr>
+</tbody></table>
+<p>不同的权值初始化器对训练收敛速度影响很大，并且像ones这种都初始为1，很有可能陷入局部最优，导致最终的loss很大。</p>
+<h4 id="5-batch-size大小"><a href="#5-batch-size大小" class="headerlink" title="5. batch_size大小"></a>5. batch_size大小</h4><h5 id="（1）8"><a href="#（1）8" class="headerlink" title="（1）8"></a>（1）8</h5><p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss9.png" class="lozad"></p>
+<p>左边为训练集的loss曲线，右边为验证集的loss曲线。</p>
+<p>可以看到验证集上有轻微的抖动。</p>
+<p>最终验证集上的loss为<strong><em>1.84245861</em></strong>。</p>
+<h5 id="（2）16"><a href="#（2）16" class="headerlink" title="（2）16"></a>（2）16</h5><p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss11.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为验证集loss曲线。</p>
+<p>最终验证集上的loss为<strong><em>1.80412955</em></strong>。</p>
+<h5 id="（3）64"><a href="#（3）64" class="headerlink" title="（3）64"></a>（3）64</h5><p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss12.png" class="lozad"></p>
+<p>验证集最初的loss变化存在抖动，而后很快就趋于收敛。</p>
+<p>最终验证集上的loss为<strong><em>1.79907260</em></strong>。</p>
+<h5 id="（4）128"><a href="#（4）128" class="headerlink" title="（4）128"></a>（4）128</h5><p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss13.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为验证集loss曲线。</p>
+<p>最终验证集上的loss为<strong><em>1.85479109</em></strong>。</p>
+<p>综上：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8</td>
+<td>1.84245861</td>
+</tr>
+<tr>
+<td>16</td>
+<td>1.80412955</td>
+</tr>
+<tr>
+<td>32</td>
+<td>1.80527330</td>
+</tr>
+<tr>
+<td>64</td>
+<td>1.79907260</td>
+</tr>
+<tr>
+<td>128</td>
+<td>1.85479109</td>
+</tr>
+</tbody></table>
+<p>本地最优结果是64的batch_size，但是榜上最好是32。所以我还是选择batch_size为32。</p>
+<h4 id="6-optimizer选择"><a href="#6-optimizer选择" class="headerlink" title="6. optimizer选择"></a>6. optimizer选择</h4><h5 id="（1）Adam"><a href="#（1）Adam" class="headerlink" title="（1）Adam"></a>（1）Adam</h5><p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss14.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为验证集loss曲线。</p>
+<p>很正常，比较平稳。</p>
+<p>最终验证集上的loss为<strong><em>1.83405668</em></strong>。</p>
+<h5 id="（2）sgd"><a href="#（2）sgd" class="headerlink" title="（2）sgd"></a>（2）sgd</h5><p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss15.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为验证集loss曲线。</p>
+<p>最终验证集上的loss为<strong><em>2.76584201</em></strong>。</p>
+<h5 id="（3）Adadelta"><a href="#（3）Adadelta" class="headerlink" title="（3）Adadelta"></a>（3）Adadelta</h5><p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss16.png" class="lozad"></p>
+<p>左边为训练集loss曲线，右边为验证集loss曲线。</p>
+<p>最终验证集上的loss为<strong><em>2.12262922</em></strong>。</p>
+<p>综上：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>RMSE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Adam</td>
+<td>1.83405668</td>
+</tr>
+<tr>
+<td>sgd</td>
+<td>2.76584201</td>
+</tr>
+<tr>
+<td>rmsprop</td>
+<td>1.80527330</td>
+</tr>
+<tr>
+<td>adadelta</td>
+<td>2.12262922</td>
+</tr>
+</tbody></table>
+<p>所以rmsprop优化器得到的结果最好。</p>
+<h4 id="7-resnet结构"><a href="#7-resnet结构" class="headerlink" title="7. resnet结构"></a>7. resnet结构</h4><p>一个残差架构如下：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/res.png" class="lozad"></p>
+<p>输入数据经过两个卷积操作后，与输入值做加和，最终输出。这样可以保证学习到高级特征的同时，低级特征也不会损失。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">identity_Block</span><span class="params">(inpt, nb_filter, kernel_size, strides=<span class="params">(<span class="number">1</span>, <span class="number">1</span>)</span>, with_conv_shortcut=False)</span>:</span></span><br><span class="line">    <span class="comment"># 第一层卷积</span></span><br><span class="line">    x = Conv2d_BN(inpt, nb_filter=nb_filter, kernel_size=kernel_size, strides=strides,padding=<span class="string">'same'</span>)</span><br><span class="line">    <span class="comment"># 第二层卷积，之后不适用激活函数</span></span><br><span class="line">    x = Conv2d_BN(x, nb_filter=nb_filter, kernel_size=kernel_size, activation=<span class="literal">False</span>, padding=<span class="string">'same'</span>)</span><br><span class="line">    <span class="comment"># 满足条件让输入通道数保持相同</span></span><br><span class="line">    <span class="keyword">if</span> with_conv_shortcut:</span><br><span class="line">        shortcut = Conv2d_BN(inpt, nb_filter=nb_filter, strides=strides, kernel_size=kernel_size, activation=<span class="literal">False</span>)</span><br><span class="line">        <span class="comment"># 加和</span></span><br><span class="line">        x = add([x, shortcut])</span><br><span class="line">        x = LeakyReLU(alpha=<span class="number">0.1</span>)(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="comment"># 否则直接相加</span></span><br><span class="line">        x = add([x, inpt])</span><br><span class="line">        x = LeakyReLU(alpha=<span class="number">0.1</span>)(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">resnet</span><span class="params">(width,height,channel,classes)</span>:</span></span><br><span class="line">    inpt = Input(shape=(width, height, channel))</span><br><span class="line">    <span class="comment"># x = ZeroPadding2D((2, 2))(inpt)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#conv1</span></span><br><span class="line">    x = Conv2d_BN(inpt, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">1</span>, <span class="number">1</span>), padding=<span class="string">'same'</span>)</span><br><span class="line">    x = Conv2d_BN(x, nb_filter=<span class="number">32</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">1</span>, <span class="number">1</span>), padding=<span class="string">'same'</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#conv2_x</span></span><br><span class="line">    x = identity_Block(x, nb_filter=<span class="number">64</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">1</span>, <span class="number">1</span>), with_conv_shortcut=<span class="literal">True</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#conv3_x</span></span><br><span class="line">    x = identity_Block(x, nb_filter=<span class="number">96</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">1</span>, <span class="number">1</span>), with_conv_shortcut=<span class="literal">True</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#conv4_x</span></span><br><span class="line">    x = identity_Block(x, nb_filter=<span class="number">128</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">1</span>, <span class="number">1</span>), with_conv_shortcut=<span class="literal">True</span>)</span><br><span class="line">    x = MaxPooling2D(pool_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#conv5_x</span></span><br><span class="line">    x = identity_Block(x, nb_filter=<span class="number">256</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">1</span>, <span class="number">1</span>), with_conv_shortcut=<span class="literal">True</span>)</span><br><span class="line">    x = AveragePooling2D(pool_size=(<span class="number">3</span>, <span class="number">3</span>), strides=(<span class="number">2</span>, <span class="number">2</span>), padding=<span class="string">'valid'</span>)(x)</span><br><span class="line">    </span><br><span class="line">    x = Flatten()(x)</span><br><span class="line">    x = Dense(<span class="number">1000</span>, activation=<span class="string">'relu'</span>)(x)</span><br><span class="line">    x = Dropout(<span class="number">0.15</span>)(x)</span><br><span class="line">    x = Dense(classes)(x)</span><br><span class="line"></span><br><span class="line">    model = Model(inputs=inpt, outputs=x)</span><br><span class="line">    <span class="keyword">return</span> model</span><br></pre></td></tr></table></figure>
+
+<p>这里我用了四个残差块，共10个卷积层。</p>
+<p>结果：</p>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/loss17.png" class="lozad"></p>
+<p>左边为训练集的loss曲线，右边为测试集的loss曲线。</p>
+<p>最终验证集上的loss为<strong><em>1.73696040</em></strong>。是我所有实验中最优的结果。</p>
+<h3 id="五-最终结果"><a href="#五-最终结果" class="headerlink" title="五. 最终结果"></a>五. 最终结果</h3><p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/2.png" class="lozad"></p>
+<p>这是我的模型跑的结果截图，loss计算的是mse，归一化后所以为这么小。</p>
+<ul>
+<li>ground truth如下：</li>
+</ul>
+<p><img alt data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/12.png" class="lozad"></p>
+<ul>
+<li>预测结果如下：</li>
+</ul>
+<p><img alt="12" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/7.png" class="lozad"></p>
+<p>蓝框标注出了差别。数据集标注的就有很大偏差，得到的模型肯定也会有偏差。</p>
+<h3 id="六-问题及解决"><a href="#六-问题及解决" class="headerlink" title="六. 问题及解决"></a>六. 问题及解决</h3><h4 id="1-测试集和训练集分布不同"><a href="#1-测试集和训练集分布不同" class="headerlink" title="1. 测试集和训练集分布不同"></a>1. 测试集和训练集分布不同</h4><p>​    我在本地跑出更好的结果，提交上去发现并没有上升。而有时候结果不好，提交后反而上升了，本地我也没有过拟合，仿佛测试集和训练集两个分布不是完全相同的。</p>
+<h4 id="2-模型大小"><a href="#2-模型大小" class="headerlink" title="2. 模型大小"></a>2. 模型大小</h4><p>​    当我只有四层卷积层时，模型大小达到了500M，而深度增加模型大小反而下降。到了12层的时候为最小，然后我再增加模型深度，大小又会增加。可能是我没加正则化项，使得权值没有约束，在浅层的时候权值很大，从而保存得到的模型大小也很大。</p>
+<h4 id="3-数据集划分"><a href="#3-数据集划分" class="headerlink" title="3. 数据集划分"></a>3. 数据集划分</h4><p>​    我尝试了很多不同的随机数种子，按照相同的比例划分数据集，相同的模型最终在验证集上得到的结果也不尽相同，可能数据量太小，以至于划分出两种不同分布的训练集和验证集。</p>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Yu</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://yoursite.com/2020/01/16/face-detect/">http://yoursite.com/2020/01/16/face-detect/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://yoursite.com">阿瑜</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/机器学习/">机器学习    </a><a class="post-meta__tags" href="/tags/CNN/">CNN    </a><a class="post-meta__tags" href="/tags/深度学习/">深度学习    </a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/6/cover.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-buttom"><i class="fa fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lozad post-qr-code__img" src="/img/wechat.png"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lozad post-qr-code__img" src="/img/alipay.png"><div class="post-qr-code__desc">支付宝</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="next-post pull-full"><a href="/2020/01/16/linux-2/"><img class="next_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/Linux/2/cover.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="label">下一篇</div><div class="next_info"><span>遍历文件目录</span></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fa fa-fw fa-thumbs-up" aria-hidden="true"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/2020/01/16/cv1/" title="应用于Potsdam数据集的实时语义分割模型的研究"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@5.0/SemanticSegmentation/1/cover.png"><div class="relatedPosts_title">应用于Potsdam数据集的实时语义分割模型的研究</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/ml-1/" title="MNIST数据集处理"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/1/cover.jpg"><div class="relatedPosts_title">MNIST数据集处理</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/data-science-3/" title="线性回归和逻辑回归"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/DataScience/3/cover.jpg"><div class="relatedPosts_title">线性回归和逻辑回归</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/data-science-4/" title="梯度下降法"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/DataScience/4/cover.jpg"><div class="relatedPosts_title">梯度下降法</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/ml-3/" title="FINDS算法及决策树ID3算法实现"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/3/cover.jpg"><div class="relatedPosts_title">FINDS算法及决策树ID3算法实现</div></a></div><div class="relatedPosts_item"><a href="/2020/01/15/ml-4/" title="单隐层神经网络的推导及实现"><img class="relatedPosts_cover lozad" data-src="https://cdn.jsdelivr.net/gh/darkseidddddd/CDN@4.0/MachineLearning/4/cover.jpg"><div class="relatedPosts_title">单隐层神经网络的推导及实现</div></a></div></div><div class="clear_both"></div></div></div></div><footer><div id="footer"><div class="copyright">&copy;2018 - 2020 By Yu</div><div class="framework-info"><span>驱动 </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly"><span>Butterfly</span></a></div><div class="footer_custom_text">Welcome to my <a href="https://darkseidddddd.github.io/">blog</a>!</div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><section class="rightside" id="rightside"><a id="to_comment" href="#post-comment"><i class="scroll_to_comment fa fa-comments"></i></a><i class="fa fa-book" id="readmode" title="阅读模式"> </i><i class="fa fa-plus" id="font_plus" title="放大字体"></i><i class="fa fa-minus" id="font_minus" title="缩小字体"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="简繁转换">繁</a><i class="nightshift fa fa-moon-o" id="nightshift" title="夜间模式"></i></section><div class=" " id="post_bottom"><div id="post_bottom_items"><a id="mobile_to_comment" href="#post-comment"><i class="mobile_scroll_to_comment fa fa-comments"></i></a><i class="fa fa-list" id="mobile_toc"></i><div id="toc_mobile"><div class="toc_mobile_headline">目录</div><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#任务描述："><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text">任务描述：</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#数据集介绍："><span class="toc_mobile_items-number">2.</span> <span class="toc_mobile_items-text">数据集介绍：</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#Baseline介绍："><span class="toc_mobile_items-number">3.</span> <span class="toc_mobile_items-text">Baseline介绍：</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#一-数据集"><span class="toc_mobile_items-number">4.</span> <span class="toc_mobile_items-text">一. 数据集</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#二-环境"><span class="toc_mobile_items-number">5.</span> <span class="toc_mobile_items-text">二. 环境</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#三-模型"><span class="toc_mobile_items-number">6.</span> <span class="toc_mobile_items-text">三. 模型</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#四-调试过程"><span class="toc_mobile_items-number">7.</span> <span class="toc_mobile_items-text">四. 调试过程</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#1-卷积层数"><span class="toc_mobile_items-number">7.1.</span> <span class="toc_mobile_items-text">1. 卷积层数</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（1）4层"><span class="toc_mobile_items-number">7.1.1.</span> <span class="toc_mobile_items-text">（1）4层</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（2）8层"><span class="toc_mobile_items-number">7.1.2.</span> <span class="toc_mobile_items-text">（2）8层</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（3）12层"><span class="toc_mobile_items-number">7.1.3.</span> <span class="toc_mobile_items-text">（3）12层</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#2-卷积核大小"><span class="toc_mobile_items-number">7.2.</span> <span class="toc_mobile_items-text">2. 卷积核大小</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（1）2-×-2"><span class="toc_mobile_items-number">7.2.1.</span> <span class="toc_mobile_items-text">（1）2 × 2</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（2）4-×-4"><span class="toc_mobile_items-number">7.2.2.</span> <span class="toc_mobile_items-text">（2）4 × 4</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#3-是否使用偏置向量"><span class="toc_mobile_items-number">7.3.</span> <span class="toc_mobile_items-text">3. 是否使用偏置向量</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（1）use-bias-False"><span class="toc_mobile_items-number">7.3.1.</span> <span class="toc_mobile_items-text">（1）use_bias = False</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#4-权值初始化"><span class="toc_mobile_items-number">7.4.</span> <span class="toc_mobile_items-text">4. 权值初始化</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（1）Ones"><span class="toc_mobile_items-number">7.4.1.</span> <span class="toc_mobile_items-text">（1）Ones</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（2）RandomNormal"><span class="toc_mobile_items-number">7.4.2.</span> <span class="toc_mobile_items-text">（2）RandomNormal</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（3）glorot-normal"><span class="toc_mobile_items-number">7.4.3.</span> <span class="toc_mobile_items-text">（3）glorot_normal</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#5-batch-size大小"><span class="toc_mobile_items-number">7.5.</span> <span class="toc_mobile_items-text">5. batch_size大小</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（1）8"><span class="toc_mobile_items-number">7.5.1.</span> <span class="toc_mobile_items-text">（1）8</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（2）16"><span class="toc_mobile_items-number">7.5.2.</span> <span class="toc_mobile_items-text">（2）16</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（3）64"><span class="toc_mobile_items-number">7.5.3.</span> <span class="toc_mobile_items-text">（3）64</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（4）128"><span class="toc_mobile_items-number">7.5.4.</span> <span class="toc_mobile_items-text">（4）128</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#6-optimizer选择"><span class="toc_mobile_items-number">7.6.</span> <span class="toc_mobile_items-text">6. optimizer选择</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（1）Adam"><span class="toc_mobile_items-number">7.6.1.</span> <span class="toc_mobile_items-text">（1）Adam</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（2）sgd"><span class="toc_mobile_items-number">7.6.2.</span> <span class="toc_mobile_items-text">（2）sgd</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-5"><a class="toc_mobile_items-link" href="#（3）Adadelta"><span class="toc_mobile_items-number">7.6.3.</span> <span class="toc_mobile_items-text">（3）Adadelta</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#7-resnet结构"><span class="toc_mobile_items-number">7.7.</span> <span class="toc_mobile_items-text">7. resnet结构</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#五-最终结果"><span class="toc_mobile_items-number">8.</span> <span class="toc_mobile_items-text">五. 最终结果</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-3"><a class="toc_mobile_items-link" href="#六-问题及解决"><span class="toc_mobile_items-number">9.</span> <span class="toc_mobile_items-text">六. 问题及解决</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#1-测试集和训练集分布不同"><span class="toc_mobile_items-number">9.1.</span> <span class="toc_mobile_items-text">1. 测试集和训练集分布不同</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#2-模型大小"><span class="toc_mobile_items-number">9.2.</span> <span class="toc_mobile_items-text">2. 模型大小</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-4"><a class="toc_mobile_items-link" href="#3-数据集划分"><span class="toc_mobile_items-number">9.3.</span> <span class="toc_mobile_items-text">3. 数据集划分</span></a></li></ol></li></ol></div></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+    processEscapes: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  },
+  CommonHTML: {
+    linebreaks: { automatic: true, width: "90% container" }
+  },
+  "HTML-CSS": { 
+    linebreaks: { automatic: true, width: "90% container" }
+  },
+  "SVG": { 
+    linebreaks: { automatic: true, width: "90% container" }
+  }
+});
+</script><script type="text/x-mathjax-config">MathJax.Hub.Queue(function() {
+  var all = MathJax.Hub.getAllJax(), i;
+  for (i=0; i < all.length; i += 1) {
+    all[i].SourceElement().parentNode.className += ' has-jax';
+  }
+});
+</script><script src="https://cdn.jsdelivr.net/npm/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="/js/nightshift.js"></script><script src="/js/tw_cn.js"></script><script>translateInitilization()
+
+</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@1.2.2/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script><script>const observer = lozad(); // lazy loads elements with default selector as '.lozad'
+observer.observe();</script></body></html>
